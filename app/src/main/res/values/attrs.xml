@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SettingItemView">
+        <attr name="title" format="string"/>
+        <attr name="desc_on" format="string"/>
+        <attr name="desc_off" format="string"/>
+    </declare-styleable>
+
+    <declare-styleable name="SettingArrowItem">
+        <attr name="sai_title" format="string"/>
+        <attr name="sai_desc" format="string"/>
+    </declare-styleable>
+
+</resources>

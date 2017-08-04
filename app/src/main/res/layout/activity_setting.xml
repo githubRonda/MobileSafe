@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_setting"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <TextView
+        style="@style/TitleStyle"
+        android:text="设置中心"
+        />
+
+    <com.ronda.mobilesafe.view.SettingItemView
+        android:id="@+id/siv_update"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:desc_off="自动更新已关闭"
+        app:desc_on="自动更新已开启"
+        app:title="自动更新设置"
+        />
+
+    <com.ronda.mobilesafe.view.SettingItemView
+        android:id="@+id/siv_adderss"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:desc_off="归属地显示已经关闭"
+        app:desc_on="归属地显示已经开启"
+        app:title="电话归属地显示设置"
+        />
+
+    <com.ronda.mobilesafe.view.SettingArrowItem
+        android:id="@+id/sai_address_style"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:sai_desc="活力橙"
+        app:sai_title="归属地提示框风格"
+        />
+
+    <com.ronda.mobilesafe.view.SettingArrowItem
+        android:id="@+id/sai_address_location"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:sai_desc="设置归属地提示框的显示位置"
+        app:sai_title="归属地提示框显示位置"
+        />
+
+    <com.ronda.mobilesafe.view.SettingItemView
+        android:id="@+id/siv_black_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:desc_off="拦截黑名单已经关闭"
+        app:desc_on="拦截黑名单已经开启"
+        app:title="拦截黑名单设置"
+        />
+
+
+    <com.ronda.mobilesafe.view.SettingArrowItem
+        android:id="@+id/sai_quick_call"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:sai_desc="一键呼叫"
+        app:sai_title="将常用联系人号码设置到桌面"
+        />
+
+
+</LinearLayout>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.ronda.mobilesafe">
+
+    <!-- xUtils3.0权限 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <!-- 获取sim序列号，6.0需要动态获取 -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <!-- 监听开机的广播 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- 读取联系人的权限 -->
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <!-- 发送短信的权限 -->
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <!-- 接收短信的权限 -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
+
+    <!-- 定位的权限：低精度和高精度 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <!-- 手机震动 -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <!-- 去电广播接收器的权限 -->
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
+
+    <!-- 向windowManager中添加type为 WindowManager.LayoutParams.TYPE_PHONE 的权限 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+    <!-- 打电话权限(拦截电话时使用) -->
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+
+    <!-- 读写 CALL_LOG 的权限，拦截黑名单电话时需要清除通话记录 -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG"/>
+    <uses-permission android:name="android.permission.WRITE_CALL_LOG"/>
+
+    <!-- 读取短信的权限，备份短信时 -->
+    <uses-permission android:name="android.permission.READ_SMS"/>
+
+    <!-- 安装快捷方式的权限, 查看launcher系统程序的源码的manifest文件可知 -->
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
+    <!-- 卸载快捷方式的权限, 查看launcher系统程序的源码的manifest文件可知 -->
+    <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT"/>
+
+    <!-- 杀死后台进程的权限 -->
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
+
+    <application
+        android:name=".base.MyApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme.NoActionBar">
+
+        <!-- @android:style/Theme.Black.NoTitleBar -->
+        <!-- android:theme="@style/AppTheme" -->
+
+
+        <!-- 广播接收器 -->
+        <receiver android:name=".receiver.BootCompleteReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".receiver.SmsReceiver">
+
+            <!-- 设置优先级，要比系统的优先级要高，这样才可以在系统前拦截. 虽然google规定priority的最大值为1000，但是超过1000也是有效的。为了保险起见，这里的值设为Integer.MAX_VALUE,即 2147483647 -->
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".receiver.AdminReceiver"
+            android:description="@string/sample_device_admin_description"
+            android:label="@string/sample_device_admin"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_sample"/>
+
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- 去电广播接收器 -->
+        <!-- 变成了动态注册 -->
+        <!--
+        <receiver
+            android:name=".receiver.OutCallReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.NEW_OUTGOING_CALL"/>
+            </intent-filter>
+        </receiver>
+        -->
+
+
+        <!-- Service服务 -->
+        <!-- 获取取经纬度坐标的服务 -->
+        <service android:name=".service.LocationService"/>
+        <!-- 来电提醒的服务 -->
+        <service android:name=".service.AddressService"/>
+        <!-- 短信拦截与电话拦截的服务 -->
+        <service android:name=".service.CallSafeService"/>
+        <!-- 锁屏清理进程的服务 -->
+        <service android:name=".service.LockScreenService"/>
+
+        <!-- Activity注册 -->
+        <activity android:name=".activity.SplashActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".activity.HomeActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.HOME"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".activity.SettingActivity"/>
+        <activity android:name=".activity.LostFindActivity"/>
+        <activity android:name=".activity.Setup1Activity"/>
+        <activity android:name=".activity.Setup2Activity"/>
+        <activity android:name=".activity.Setup3Activity"/>
+        <activity android:name=".activity.Setup4Activity"/>
+        <activity android:name=".activity.ContactActivity"/>
+        <activity android:name=".activity.AToolsActivity"/>
+        <activity android:name=".activity.AddressActivity"/>
+        <activity
+            android:name=".activity.DragViewActivity"
+            android:theme="@style/CompatTranslucent">
+        </activity>
+        <!-- android:theme="@android:style/Theme.Translucent.NoTitleBar" -->
+        <activity android:name=".activity.CallSafeActivity"/>
+        <activity android:name=".activity.CallSafeActivity2"/>
+        <activity android:name=".activity.AppManageActivity"/>
+        <activity android:name=".activity.ProcessManagerActivity">
+        </activity>
+        <activity android:name=".activity.ProcessSettingActivity">
+        </activity>
+        <activity android:name=".activity.CommonNumActivity">
+        </activity>
+    </application>
+
+</manifest>

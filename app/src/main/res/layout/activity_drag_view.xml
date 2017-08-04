@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--因为这个页面中的ImageView是可以拖拽的，所以使用RelativeLayout布局-->
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#5000"
+    >
+
+    <TextView
+        android:id="@+id/tv_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/call_locate_blue"
+        android:gravity="center"
+        android:padding="15dp"
+        android:text="按住提示框拖到任意位置\n按手机返回键立即生效"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        />
+
+    <ImageView
+        android:id="@+id/iv_drag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:src="@drawable/drag"
+        />
+
+    <!--注意：隐藏这个View使用invisible而不是gone，因为gone可能会造成位置错乱-->
+    <TextView
+        android:id="@+id/tv_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/call_locate_blue"
+        android:gravity="center"
+        android:padding="15dp"
+        android:text="按住提示框拖到任意位置\n按手机返回键立即生效"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:visibility="invisible"
+        />
+</RelativeLayout>

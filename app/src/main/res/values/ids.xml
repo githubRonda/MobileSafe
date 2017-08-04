@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--预加载id-->
+<resources>
+    <item name="list_view" type="id"/>
+    <item name="btn_comfirm" type="id"/>
+    <item name="btn_cancel" type="id"/>
+</resources>
