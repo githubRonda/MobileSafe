@@ -2298,3 +2298,19 @@ http://www.cnblogs.com/yeqw1985/archive/2013/02/06/2907704.html
 	IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
     mReceiver = new ScreenOffReceiver();
     registerReceiver(mReceiver, filter);
+
+
+## 获取常用号码（可扩展列表的使用 ExpandableListView）
+先分析commonnum.db数据库（里面存的就是这些常用电话号码的数据）
+
+![](ScreenShots/commonnum_1.png) 
+![](ScreenShots/commonnum_2.png) 
+![](ScreenShots/commonnum_3.png)
+
+通过分析可知：
+
+1. classlist表是主分类的数据；table* 这8张表是子分类的数据
+2. 主分类和子分类的关联关系就是："table" + classList表中 idx 字段值 ==> 拼接成的字符串就是对应的子分类的表名
+
+ListView 使用的是BaseAdapter 适配器， 而 ExpandableListView 使用的是 BaseExpandableListAdapter
+
