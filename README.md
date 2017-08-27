@@ -2314,3 +2314,384 @@ http://www.cnblogs.com/yeqw1985/archive/2013/02/06/2907704.html
 
 ListView 使用的是BaseAdapter 适配器， 而 ExpandableListView 使用的是 BaseExpandableListAdapter
 
+ 	/**
+     * ExpandableListView 的适配器
+     */
+    class MyAdapter extends BaseExpandableListAdapter {
+
+        @Override
+        public int getGroupCount() {
+            return mData.size();
+        }
+
+        @Override
+        public int getChildrenCount(int groupPosition) {
+            return mData.get(groupPosition).childList.size();
+        }
+
+        @Override
+        public CommonNumDao.Group getGroup(int groupPosition) {
+            return mData.get(groupPosition);
+        }
+
+        @Override
+        public CommonNumDao.Child getChild(int groupPosition, int childPosition) {
+            return mData.get(groupPosition).childList.get(childPosition);
+        }
+
+        @Override
+        public long getGroupId(int groupPosition) {
+            return groupPosition;
+        }
+
+        @Override
+        public long getChildId(int groupPosition, int childPosition) {
+            return childPosition;
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return false;
+        }
+
+        @Override
+        public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+        }
+
+        @Override
+        public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+        }
+
+        //这个方法的名字虽然是孩子节点是否可选中，但是实质上是孩子节点是否响应事件（包括点击），若返回false，则不会响应孩子节点的点击事件
+        @Override
+        public boolean isChildSelectable(int groupPosition, int childPosition) {
+            return true;
+        }
+    }
+
+
+## 桌面Widget(窗口小部件)
+- widget谷歌文档查看(API Guide->App Components->App Widget)
+- widget开发流程（3步：1.Manifest中声明AppWidgetProvider（即Receiver），创建java类 2. 需要引入一个xml的配置文件 3.该配置文件又关联一个layout布局文件）
+
+		1. 在com.itheima.mobilesafe.receiver目录下创建MyWidget并且继承 AppWidgetProvider（AppWidgetProvider继承自BroadcastReceiver）
+		2. 在功能清单文件注册，参照文档
+	
+			<receiver android:name=".receiver.MyWidget" >
+	            <intent-filter>
+	                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+	            </intent-filter>
+	
+	            <meta-data
+	                android:name="android.appwidget.provider"
+	                android:resource="@xml/appwidget_info" />
+	        </receiver>
+	
+		3. 在res/xml/创建文件example_appwidget_info.xml拷贝文档内容
+			
+			<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"    
+		    android:minWidth="294dp"    
+		    android:minHeight="72dp"//能被调整的最小宽高，若大于minWidth minHeight 则忽略    
+		    android:updatePeriodMillis="86400000"//更新周期,毫秒,最短默认半小时    
+		    android:previewImage="@drawable/preview"//选择部件时 展示的图像,3.0以上使用,默认是ic_launcher    
+		    android:initialLayout="@layout/example_appwidget"//布局文件
+		    android:configure="com.example.android.ExampleAppWidgetConfigure"//添加widget之前,先跳转到配置的activity进行相关参数配置,这个我们暂时用不到       
+		    android:resizeMode="horizontal|vertical"//widget可以被拉伸的方向。horizontal表示可以水平拉伸，vertical表示可以竖直拉伸
+			android:widgetCategory="home_screen|keyguard"//分别在屏幕主页和锁屏状态也能显示(4.2+系统才支持)
+				android:initialKeyguardLayout="@layout/example_keyguard"//锁屏状态显示的样式(4.2+系统才支持)
+			>
+			</appwidget-provider>
+	
+		4. 精简example_appwidget_info.xml文件,最终结果:
+	
+			<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:minWidth="294dp"    
+				android:minHeight="72dp"
+			    android:updatePeriodMillis="1800000"
+			    android:initialLayout="@layout/appwidget"
+			   >
+			</appwidget-provider>
+	
+		5. widget布局文件:appwidget.xml
+	
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:layout_width="match_parent"
+			    android:layout_height="match_parent"
+			    android:orientation="vertical" >
+			
+			    <TextView
+			        android:id="@+id/textView1"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:background="#f00"
+			        android:text="我是widget,哈哈哈"
+			        android:textSize="30sp" />
+			</LinearLayout>
+
+
+- 仿照金山widget效果, apktool反编译,抄金山布局文件(业内抄袭成风)
+
+		1. 反编译金山apk
+	
+			使用apktool,可以查看xml文件内容
+			apktool d xxx.apk
+		2. 在金山清单文件中查找 APPWIDGET_UPDATE, 找到widget注册的代码
+		3. 拷贝金山widget的布局文件process_widget_provider.xml到自己的项目中
+		4. 从金山项目中拷贝相关资源文件,解决报错 
+		5. 运行,查看效果	
+	
+- widget生命周期
+
+分析：
+
+	1, 窗体小部件的更新应该置于服务中，不会随着程序的关闭而关闭
+	2, 该更新的服务开始时刻和结束时刻：当窗体小部件拖出来的时候就开启服务，当所有的该窗体小部件（窗体小部件可以有多个）都删掉的时候就停止服务
+	3, 窗口小部件的生命周期：
+	onEnabled: 创建第一个窗口小部件时调用
+	onUpdate: 每创建一个widget时调用,或者widget更新时,调用onUpdate 更新时间取决于xml中配置的时间,最短为半小时
+	onAppWidgetOptionsChanged: 窗口小部件的大小改变时调用
+	onDeleted: 每删除一个窗口小部件时调用
+	onDisabled: 删除最后一个窗口小部件时调用
+	
+	而onReceive方法则是每次调用Widget的生命周期方法时，onReceive方法都会被调用一次
+ 
+MyAppWidgetProvider代码：
+
+		/**
+		 * 窗口小部件widget
+		 * 
+		 * @author Kevin
+		 * 
+		 */
+		public class MyWidget extends AppWidgetProvider {
+		
+			/**
+			 * widget的每次变化都会调用onReceive
+			 */
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				super.onReceive(context, intent);
+				System.out.println("MyWidget: onReceive");
+			}
+		
+			/**
+			 * 当widget第一次被添加时,调用onEnable
+			 */
+			@Override
+			public void onEnabled(Context context) {
+				super.onEnabled(context);
+				System.out.println("MyWidget: onEnabled");
+			}
+		
+			/**
+			 * 当widget完全从桌面移除时,调用onDisabled
+			 */
+			@Override
+			public void onDisabled(Context context) {
+				super.onDisabled(context);
+				System.out.println("MyWidget: onDisabled");
+			}
+		
+			/**
+			 * 新增widget时,或者widget更新时,调用onUpdate
+			 * 更新时间取决于xml中配置的时间,最短为半小时
+			 */
+			@Override
+			public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+					int[] appWidgetIds) {
+				super.onUpdate(context, appWidgetManager, appWidgetIds);
+				System.out.println("MyWidget: onUpdate");
+			}
+		
+			/**
+			 * 删除widget时,调onDeleted
+			 */
+			@Override
+			public void onDeleted(Context context, int[] appWidgetIds) {
+				super.onDeleted(context, appWidgetIds);
+				System.out.println("MyWidget: onDeleted");
+			}
+		
+			/**
+			 * 当widget大小发生变化时,调用此方法
+			 */
+			@Override
+			public void onAppWidgetOptionsChanged(Context context,
+					AppWidgetManager appWidgetManager, int appWidgetId,
+					Bundle newOptions) {
+				System.out.println("MyWidget: onAppWidgetOptionsChanged");
+			}
+		
+		}
+			
+
+- 定时更新widget
+
+		问题: 我们需要通过widget实时显示当前进程数和可用内存,但widget最短也得半个小时才会更新一次, 如何才能间隔比较短的时间来及时更新?
+	
+		查看金山日志:
+	
+		当桌面有金山widget时, 金山会在后台启动service:ProcessService,并定时输出如下日志:
+		03-29 08:43:03.070: D/MoSecurity.ProcessService(275): updateWidget
+	
+		该日志在锁屏状态下也一直输出.
+	
+		解决办法: 后台启动service,UpdateWidgetService, 并在service中启动定时器来控制widget的更新
+
+- 更新widget方法
+
+		/**
+		 * 更新Widget的时机：
+		 * 1. 启动UpdateAppWidgetService时(添加第一个Widget时) 2. 解锁屏的时候
+		 *
+		 * 停止更新widget的时机
+		 * 1. 停止UpdateAppWidgetService时(移除最后一个Widget时) 2. 锁屏的时候
+		 */
+		public class UpdateAppWidgetService extends Service {
+		
+		    private Timer timer;
+		    private TimerTask timerTask;
+		    private InnerReceiver mReceiver;
+		
+		    @Nullable
+		    @Override
+		    public IBinder onBind(Intent intent) {
+		        return null;
+		    }
+		
+		    @Override
+		    public void onCreate() {
+		        super.onCreate();
+		        //启动定时器
+		        startTimer();
+		
+		        //动态注册广播接收器
+		        IntentFilter filter = new IntentFilter();
+		        filter.addAction(Intent.ACTION_SCREEN_ON);
+		        filter.addAction(Intent.ACTION_SCREEN_OFF);
+		
+		        mReceiver = new InnerReceiver();
+		        registerReceiver(mReceiver, filter);
+		    }
+		
+		    @Override
+		    public void onDestroy() {
+		        super.onDestroy();
+		        stopTimer();
+		
+		        //注销广播接收器
+		        unregisterReceiver(mReceiver);
+		    }
+		
+		    // 停止定时器
+		    private void stopTimer() {
+		        if (timer != null) {
+		            timerTask.cancel();
+		            timer.cancel();
+		
+		            timerTask = null;
+		            timer = null;
+		        }
+		    }
+		
+		    //启动定时器
+		    private void startTimer() {
+		
+		        if (timer == null) {
+		            timer = new Timer();
+		            timerTask = new TimerTask() {
+		                @Override
+		                public void run() {
+		                    updateAppWidget();
+		                }
+		            };
+		            //schedule和scheduleAtFixedRate的区别在于，如果指定开始执行的时间在当前系统运行时间之前，scheduleAtFixedRate会把已经过去的时间也作为周期执行，而schedule不会把过去的时间算上。
+		            //scheduleAtFixedRate 效率总体上高于schedule
+		            timer.scheduleAtFixedRate(timerTask, 0, 5000);// 每5s执行一次
+		        }
+		    }
+		
+		    /**
+		     * 更新widget
+		     */
+		    private void updateAppWidget() {
+		
+		        //获取AppWidgetManager
+		        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+		
+		        //获取窗体小部件对应的View，用RemoteViews表示
+		        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.process_widget_provider);
+		
+		        //设置View
+		        remoteViews.setTextViewText(R.id.tv_process_count, "进程总数: " + ProcessInfoProvider.getProcessCount(this));
+		        remoteViews.setTextViewText(R.id.tv_process_memory, "可用内存: " + Formatter.formatFileSize(this, ProcessInfoProvider.getTotalSpace(this)));
+		
+		        //removeViews添加事件比较特别，只能通过Intent。而且点击事件是不变的，可以放在onCreate中
+		
+		        //点击窗体小部件进入应用(隐式启动HomeActivity)
+		        Intent intent = new Intent("android.intent.action.HOME");
+		        intent.addCategory(Intent.CATEGORY_DEFAULT);
+		        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+		        remoteViews.setOnClickPendingIntent(R.id.ll_root, pendingIntent);
+		
+		        //通过 PendingIntent 发送广播, 在广播接收器中杀死进程
+		        PendingIntent pendingIntent1 = PendingIntent.getBroadcast(this, 0, new Intent("com.ronda.action.KILL_PROCESS"), PendingIntent.FLAG_CANCEL_CURRENT);
+		        remoteViews.setOnClickPendingIntent(R.id.btn_clear, pendingIntent1);
+		
+		
+		        //通知appWidgetManager更新AppWidget
+		        ComponentName componentName = new ComponentName(this, MyAppWidgetProvider.class);
+		        appWidgetManager.updateAppWidget(componentName, remoteViews);
+		    }
+		
+		    //接收锁屏和解锁屏的广播. 目的就是锁屏的时候停止widget的更新，节省电量
+		    class InnerReceiver extends BroadcastReceiver {
+		
+		        @Override
+		        public void onReceive(Context context, Intent intent) {
+		
+		            if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+		                startTimer();
+		            } else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+		                stopTimer();
+		            }
+		        }
+		    }
+		}
+
+		-----------------------------
+
+		启动和销毁service的时机
+
+		分析widget的声明周期,在onEnabled和onUpdate中启动服务, 在onDisabled中结束服务
+
+		---------------------------  
+		
+		/**
+		 * 杀死后台进程的广播接受者
+		 * 清单文件中配置action="com.ronda.action.KILL_PROCESS"
+		 */
+		public class killProcessReceiver extends BroadcastReceiver {
+		    @Override
+		    public void onReceive(Context context, Intent intent) {
+		
+		        //杀死所有进程
+		        ProcessInfoProvider.killAll(context);
+		    }
+		}
+		
+		---------------------------
+		
+		<receiver android:name=".receiver.killProcessReceiver">
+            <intent-filter>
+                <action android:name="com.ronda.action.KILL_PROCESS"/>
+            </intent-filter>
+        </receiver>
+
+- 注意: APK安装在sd卡上，widget在窗口小部件列表里无法显示。   android:installLocation="preferExternal", 修改过来后，需要卸载，再去安装widget才生效；
+
+- 点击事件处理:PendingIntent 延迟意图 RemoteViews.setOnClickPendingIntent();
+
+- 做一个有情怀的程序员, 拒绝耗电! 当锁屏关闭时,停止widget定时器的更新
+
