@@ -72,4 +72,9 @@ public class AToolsActivity extends AppCompatActivity {
     public void commonnumQuery(View view){
         startActivity(new Intent(this, CommonNumActivity.class));
     }
+
+    //程序锁设置
+    public void lockApp(View view){
+        startActivity(new Intent(this, AppLockActivity.class));
+    }
 }

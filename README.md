@@ -2695,3 +2695,410 @@ MyAppWidgetProvider代码：
 
 - 做一个有情怀的程序员, 拒绝耗电! 当锁屏关闭时,停止widget定时器的更新
 
+## 程序锁
+### 已加锁和未加锁列表
+分析可知：
+
+* 使用数据库保存已加锁的软件。 创建表, 两个字段,_id, packagename(应用包名)
+* 已加锁和未加锁的列表分别用两个ListView来实现，一个显示时，另一个隐藏
+
+已加锁列表和未加锁列表公用的数据适配器类
+
+    class MyAdapter extends BaseAdapter {
+
+        //已加锁和未加锁列表公用一个适配器类，用isLock来区分
+        private final boolean isLock;
+
+        public MyAdapter(boolean isLock) {
+            this.isLock = isLock;
+        }
+
+        @Override
+        public int getCount() {
+            if (isLock) {
+                mTvLock.setText("已加锁应用：" + mLockList.size());
+                return mLockList.size();
+            } else {
+                mTvUnlock.setText("未加锁应用：" + mUnLockList.size());
+                return mUnLockList.size();
+            }
+        }
+
+        @Override
+        public AppInfo getItem(int position) {
+            if (isLock) {
+                return mLockList.get(position);
+            } else {
+                return mUnLockList.get(position);
+            }
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ViewHolder holder = null;
+            if (convertView == null) {
+                convertView = LayoutInflater.from(getApplicationContext()).inflate(R.layout.item_lock, parent, false);
+                holder = new ViewHolder();
+                holder.ivIcon = (ImageView) convertView.findViewById(R.id.iv_icon);
+                holder.tvName = (TextView) convertView.findViewById(R.id.tv_name);
+                holder.ivLock = (ImageView) convertView.findViewById(R.id.iv_lock);
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder) convertView.getTag();
+            }
+
+            final AppInfo appInfo = getItem(position);
+            holder.ivIcon.setImageDrawable(appInfo.getIcon());
+            holder.tvName.setText(appInfo.getApkName());
+            if (isLock) {
+                holder.ivLock.setImageResource(R.drawable.lock);
+            } else {
+                holder.ivLock.setImageResource(R.drawable.unlock);
+            }
+
+            final View itemView = convertView;
+            //给锁添加点击事件： 1. 设置动画 2. 一个集合删除元素，另一个集合添加元素 3. sqlite也要对应 插入/删除 数据
+            holder.ivLock.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if (isLock) {
+                        itemView.startAnimation(mUnlockAnim);
+
+                        //动画是异步执行的，会造成动画刚一开始执行界面数据就更新完成了。所以要保证这个过程是同步进行，即动画执行结束后再删除数据。所以使用动画监听器
+                        mUnlockAnim.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                //当动画结束时
+                                mLockList.remove(appInfo);
+                                mUnLockList.add(appInfo);
+                                mAppLockDao.delete(appInfo.getApkName());
+                                mLockAdapter.notifyDataSetChanged();
+                                mUnlockAdapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+                            }
+                        });
+
+                    } else {
+                        itemView.startAnimation(mLockAnim);
+
+                        mLockAnim.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                //当动画结束时
+                                mUnLockList.remove(appInfo);
+                                mLockList.add(appInfo);
+                                mAppLockDao.insert(appInfo.getApkName());
+                                mLockAdapter.notifyDataSetChanged();
+                                mUnlockAdapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+                            }
+                        });
+                    }
+                }
+            });
+            return convertView;
+        }
+    }
+
+    static class ViewHolder {
+        ImageView ivIcon;
+        ImageView ivLock;
+        TextView tvName;
+    }
+
+
+### 已加锁程序的业务逻辑
+
+分析可知：
+
+* 程序锁必须在服务中去维护（因为即使安全卫士退出，程序锁列表中的程序拦截依然是有效的）。具体步骤如下：
+	1. 获取当前最新开启的应用（使用任务栈来获取） 
+	2. 若该应用在已加锁列表中，则弹出拦截界面
+	3. 看门狗服务 WatchDogService，一个可控的死循环，一直对用户开启应用的操作进行监听
+* 注意：
+	1. 拦截界面的Activity的启动模式必须为 singleInstance。因为如果不这样设置的话，当点击加锁app时，弹出的拦截界面是和MobileSafe同在一个任务栈中的，这样当输入正确密码 finish 掉拦截界面时，出现的界面是 MobileSafe 中的，而不是加锁 app的界面
+	2. 拦截界面验证通过后，必须要通知给看门狗服务，不要再去监听已解锁的应用(使用广播) 。否则 WatchDogService 在下一轮监听中又会拦截该应用
+	3. 先点击MobileSafe，开启看门狗服务；然后再点击一个加锁程序。此时按home键挂起程序，再按任务键选择MobileSafe，则弹出的界面是拦截界面，而不是MobileSafe中的其他界面。解决方法：当挂起拦截界面时，不让MobileSafe在任务键界面显示。具体就是在Manifest中给拦截界面Activity配置  android:excludeFromRecents="true" 属性
+	4. 当点击加锁app，跳出拦截界面后，此时点击back键，则又会跳出拦截界面。解决方法：在拦截界面中复写onBackPressed()方法，改变默认行为，让其直接回到launcher界面
+
+具体如下：
+
+    <--拦截界面要在一个单独的任务栈中-->
+    <!--当拦截界面按home键挂起时，不让在任务键界面中显示 exclude:排除，不包括-->
+    <activity android:name=".activity.EnterPwdActivity"
+        android:launchMode="singleInstance"
+        android:excludeFromRecents="true"/>
+
+	====================
+	（EnterPwdActivity.java）
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed(); //结束当前activity
+
+        /* Launcher 的 IntentFilter
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.MONKEY"/>
+        </intent-filter>
+        */
+
+        //跳转至launcher
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        startActivity(intent);
+    }
+
+完整代码：
+
+	public class WatchDogService extends Service {
+	    private boolean isWatch;
+	    private ActivityManager mActivityManager;
+	    private AppLockDao mLockDao;
+	    private List<String> mPackageNameList;
+	    private String mSkipPackagename;
+	    private InnerReceiver mReceiver;
+	    private MyContentObserver mContentObserver;
+	
+	    @Nullable
+	    @Override
+	    public IBinder onBind(Intent intent) {
+	        return null;
+	    }
+	
+	    @Override
+	    public void onCreate() {
+	        super.onCreate();
+	
+	        mActivityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+	        mLockDao = AppLockDao.getInstance(this);
+	
+	        //动态注册广播
+	        mReceiver = new InnerReceiver();
+	        IntentFilter filter = new IntentFilter("com.ronda.action.SKIP");
+	        registerReceiver(mReceiver, filter);
+	
+	        //注册一个内容观察者, 观察数据库的变化,一旦数据有删除或者添加,则需要让mPacknameList重新获取一次数据
+	        mContentObserver = new MyContentObserver(new Handler());
+	        getContentResolver().registerContentObserver(Uri.parse("content://com.ronda.mobilesafe/applockdb/change"), true, mContentObserver);
+	
+	        // 子线程中开启一个可控死循环，用于不断检测现在开启的应用是否是程序锁列表中要去拦截的应用
+	        isWatch = true;
+	        startWatch();
+	    }
+	
+	    @Override
+	    public void onDestroy() {
+	        super.onDestroy();
+	        isWatch = false;
+	
+	        unregisterReceiver(mReceiver);
+	
+	        getContentResolver().unregisterContentObserver(mContentObserver);
+	    }
+	
+	    //启动子线程循环监听
+	    private void startWatch() {
+	
+	        new Thread() {
+	            @Override
+	            public void run() {
+	                //子线程中查询SQLite
+	                mPackageNameList = mLockDao.findAll();
+	
+	                //子线程中死循环
+	
+	                while (isWatch) {
+	                    // 此方法从api21开始就已过时，原因：会泄露个人信息
+	                    // 获取正在运行的任务栈(每打开一个程序都会新建一个任务栈，而且同一个程序中的不同activity可能还会处于不同任务栈中（这取决于launchMode是否为singleInstance）)
+	                    // 因为要获取最新开启的任务栈，所以形参maxNum取1即可。
+	                    // 需要权限：android.permission.GET_TASKS
+	                    List<ActivityManager.RunningTaskInfo> runningTasks = mActivityManager.getRunningTasks(100);
+	                    ComponentName topActivity = runningTasks.get(0).topActivity;//获取最上层的Activity对应的组件名。ComponentName本质上就是四大基本组件的 包名+类名(全限定名) 的描述
+	                    String packageName = topActivity.getPackageName();
+	
+	                    //若加锁列表中包含最新打开程序的包名，则弹出拦截界面
+	                    //这步判断也可以给 mLockDao 添加一个 find(String packageName) 方法，不过当然是没有内存查找效率高，但是更及时，因为这种方法在WatchDogService启动后中途加锁或解锁的程序不会检测到
+	                    // 这里使用内存查找，虽然是有弊端，但是可以使用内容观察者完善
+	                    if (mPackageNameList.contains(packageName)) {
+	                    //if (mLockDao.find(packageName)) {
+	                        //通过验证的不需要再次拦截
+	                        if (!packageName.equals(mSkipPackagename)) {
+	                            // Intent.FLAG_ACTIVITY_NEW_TASK 启动activity并不一定会新建任务栈，这取决于目标activity的taskAffinity属性（如果不指定默认为包名）。
+	                            // 启动时首先会去寻找taskAffinity属性指定的任务栈，如果没有找到才会新建。如果找到了就会在该任务栈栈内做操作。
+	                            // 所以，只使用以下方式启动的 EnterPwdActivity 是和 MobileSafe 应用同在一个任务栈中。所以需要在 Manifest 中给 EnterPwdActivity 配置 singleInstance的启动模式
+	                            // 这样才会重新开启一个任务栈装载 EnterPwdActivity。然后当 EnterPwdActivity finish之后，界面会跳转到加锁列表中的Activity，而不是mobileSafe本身的程序中
+	                            Intent intent = new Intent(getApplicationContext(), EnterPwdActivity.class);
+	                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	                            intent.putExtra("packageName", packageName);
+	                            startActivity(intent);
+	                        }
+	                    }
+	
+	                    try {
+	                        Thread.sleep(500); //每隔200毫秒检测一次,节省cpu资源
+	                    } catch (InterruptedException e) {
+	                        e.printStackTrace();
+	                    }
+	                }
+	
+	            }
+	        }.start();
+	    }
+	
+	    /**
+	     * 通过拦截验证的应用会发送广播到这里
+	     */
+	    class InnerReceiver extends BroadcastReceiver {
+	
+	        @Override
+	        public void onReceive(Context context, Intent intent) {
+	            mSkipPackagename = intent.getStringExtra("packageName"); //通过验证的加锁app的包名
+	        }
+	    }
+	
+	    /**
+	     * 内容观察者，监视加锁app数据库数据有无变化
+	     */
+	    class MyContentObserver extends ContentObserver {
+	        /**
+	         * Creates a content observer.
+	         *
+	         * @param handler The handler to run {@link #onChange} on, or null if none.
+	         */
+	        public MyContentObserver(Handler handler) {
+	            super(handler);
+	        }
+	
+	        //一旦数据库发生改变时候调用方法,重新获取包名所在集合的数据
+	        @Override
+	        public void onChange(boolean selfChange) {
+	            super.onChange(selfChange);
+	            //子线程中查找
+	            new Thread() {
+	                @Override
+	                public void run() {
+	                    mPackageNameList = mLockDao.findAll();
+	                }
+	            }.start();
+	        }
+	    }
+	}
+
+	==================================================================================
+
+	- 相关优化
+
+			知识拓展：看门狗后台一直在运行，这样是比较耗电的。
+			
+			我们要优化的的话怎么做呢？
+			在看门狗服务里，监听锁屏事件，如果锁屏了我就把看门狗停止（flag = false;）；屏幕开启了，我就让看门狗开始工作启动服务并且flag = true;；
+			
+			避免一次输入密码了不再输入；防止别人在我使用的时候，接着使用不用输入密码的情形；
+			也可以在锁屏的时候把mSkipPackageName赋值为空就行了。
+
+	- 隐藏最近打开的activity
+
+			长按小房子键：弹出历史记录页面，就会列出最近打开的Activity;
+
+			1. 演示由于最近打开的Activity导致的Bug;
+			
+			2. 容易暴露用户的隐私
+			  最近打开的Activity，是为了用户可以很快打开最近打开的应用而设计的；2.2、2.3普及后就把问题暴露出来了，很容易暴露用户的隐私。比如你玩一些日本开发的游戏：吹裙子、扒衣服这类游戏。你正在玩这些有些，这个时候，爸妈或者大学女辅导员过来了，赶紧按小房子，打开背单词的应用，这时大学女辅导员走过来说，干嘛呢，把手机交出来，长按一下小房子键，这个时候很尴尬的事情就产生了。
+			
+				A：低版本是无法移除的。低版本记录最近8个；想要隐藏隐私，打开多个挤出去；
+				B:4.0以后高版本就可以直接移除了。考虑用户呼声比较高。
+			
+			3. 设置不在最近任务列表显示activity
+			    <--拦截界面要在一个单独的任务栈中-->
+			    <!--当拦截界面按home键挂起时，不让在任务键界面中显示 exclude:排除，不包括-->
+			    <activity android:name=".activity.EnterPwdActivity"
+			        android:launchMode="singleInstance"
+			        android:excludeFromRecents="true"/>
+			
+			4. 在装有腾讯管家的模拟器演示腾讯管理的程序锁功能；也没用现实最近的Activity,它也是这样做的。
+			
+			知识拓展，以后开发带有隐私的软件，或者软件名称不好听的应用，就可以加载在最近打开列表不包括字段.
+
+	- 腾讯管家和手机卫士同时加锁,谁更快?
+
+			腾讯管家会更快一些, 所以需要再进一步优化
+
+	- 提高性能
+
+		- 缩短每次巡逻时间
+
+				//将100改为20
+				try {
+					Thread.sleep(20);
+				} catch (InterruptedException e) {
+						e.printStackTrace();
+				}
+		- 不频繁调用数据库
+
+				从数据库中读取所有已加锁应用列表,每次从集合中查询判断
+
+				mLockedPackages = mDao.getInstance(this).findAll();// 查询所有已加锁的应用列表
+
+				// if (mDao.find(packageName)) {// 查看当前页面是否在加锁的数据库中
+				if (mLockedPackages.contains(packageName)) {}
+
+		- 重新和腾讯管家比拼速度
+		- 监听数据库变化, 更新集合
+
+			- 增加另外一款软件进入程序锁。打开看看，是无法打开输入密码页面的；解析原因；
+				这个时候就需要根据数据库的数据变化而改变集合的信息了，就用到了观察者；
+
+			- 联想监听来电拦截时,监听通话日志变化的逻辑,解释原理
+
+			- 具体实现
+
+					AppLockDao.java
+
+					// 使用内容观察解析者通知数据库 数据已改变
+       				 mContext.getContentResolver().notifyChange(Uri.parse("content://com.ronda.mobilesafe/applockdb/change"), null);					
+
+					-------------------------------------
+
+					WatchDogService.java	
+
+					//注册一个内容观察者, 观察数据库的变化,一旦数据有删除或者添加,则需要让mPacknameList重新获取一次数据
+			        mContentObserver = new MyContentObserver(new Handler());
+			        getContentResolver().registerContentObserver(Uri.parse("content://com.ronda.mobilesafe/applockdb/change"), true, mContentObserver);
+
+					getContentResolver().unregisterContentObserver(mContentObserver);// 注销观察者		
+
+					class MyContentObserver extends ContentObserver {
+	
+						public MyContentObserver(Handler handler) {
+							super(handler);
+						}
+				
+						@Override
+						public void onChange(boolean selfChange) {
+							System.out.println("数据变化了...");
+							mPackageNameList = mLockDao.findAll();
+						}
+				
+					}

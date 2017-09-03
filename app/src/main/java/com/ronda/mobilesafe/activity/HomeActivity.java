@@ -2,12 +2,10 @@ package com.ronda.mobilesafe.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.Image;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -16,15 +14,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ronda.mobilesafe.R;
 import com.ronda.mobilesafe.bean.HomeItemBean;
 import com.ronda.mobilesafe.utils.MD5Utils;
-import com.socks.library.KLog;
 
 import java.util.ArrayList;
 import java.util.List;

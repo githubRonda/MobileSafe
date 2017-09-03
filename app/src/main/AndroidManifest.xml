@@ -48,6 +48,9 @@
     <!-- 杀死后台进程的权限 -->
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
 
+    <!--获取任务栈的权限 ActivityManager.getRunningTasks()-->
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+
     <application
         android:name=".base.MyApplication"
         android:allowBackup="true"
@@ -86,12 +89,14 @@
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".receiver.MyAppWidgetProvider" >
+        <receiver android:name=".receiver.MyAppWidgetProvider">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
-            <meta-data android:name="android.appwidget.provider"
-                       android:resource="@xml/example_appwidget_info" />
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/example_appwidget_info"/>
         </receiver>
         <receiver android:name=".receiver.killProcessReceiver">
             <intent-filter>
@@ -120,7 +125,10 @@
         <service android:name=".service.CallSafeService"/>
         <!-- 锁屏清理进程的服务 -->
         <service android:name=".service.LockScreenService"/>
+        <!--更新窗口小程序服务-->
         <service android:name=".service.UpdateAppWidgetService"/>
+        <!--看门狗服务 程序锁-->
+        <service android:name=".service.WatchDogService"/>
 
         <!-- Activity注册 -->
         <activity android:name=".activity.SplashActivity">
@@ -160,6 +168,13 @@
         </activity>
         <activity android:name=".activity.CommonNumActivity">
         </activity>
+        <activity android:name=".activity.AppLockActivity">
+        </activity>
+        <!--拦截界面要在一个单独的任务栈中-->
+        <!--当拦截界面按home键挂起时，不让在任务键界面中显示 exclude:排除，不包括-->
+        <activity android:name=".activity.EnterPwdActivity"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"/>
     </application>
 
 </manifest>

@@ -67,4 +67,13 @@
         />
 
 
+    <com.ronda.mobilesafe.view.SettingItemView
+        android:id="@+id/siv_app_lock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:desc_off="程序锁已关闭"
+        app:desc_on="程序锁已开启"
+        app:title="程序锁设置"
+        />
+
 </LinearLayout>

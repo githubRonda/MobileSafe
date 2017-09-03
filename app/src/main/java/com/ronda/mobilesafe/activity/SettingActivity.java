@@ -11,6 +11,7 @@ import android.view.View;
 import com.ronda.mobilesafe.R;
 import com.ronda.mobilesafe.service.AddressService;
 import com.ronda.mobilesafe.service.CallSafeService;
+import com.ronda.mobilesafe.service.WatchDogService;
 import com.ronda.mobilesafe.utils.ServiceStateUtils;
 import com.ronda.mobilesafe.view.SettingArrowItem;
 import com.ronda.mobilesafe.view.SettingItemView;
@@ -22,7 +23,7 @@ public class SettingActivity extends AppCompatActivity {
     private SettingArrowItem mItemAddressStyle;
     private SettingArrowItem mItemAddressLocation;
     private SettingItemView mItemBlackNumber;
-    private SettingArrowItem mItemQuickCall;
+    private SettingItemView mItemAppLock;
 
     private SharedPreferences mPreferences;
 
@@ -38,6 +39,31 @@ public class SettingActivity extends AppCompatActivity {
         initAddressStyle();
         initAddressLocation();
         initBlackNumber();
+        initAppLock();
+    }
+
+    /**
+     * 程序锁
+     */
+    private void initAppLock() {
+        mItemAppLock = (SettingItemView) findViewById(R.id.siv_app_lock);
+
+        boolean isRunning = ServiceStateUtils.isRunning(this, WatchDogService.class.getName());
+        mItemAppLock.setChecked(isRunning);
+
+        mItemAppLock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                boolean checked = !mItemAppLock.isChecked();
+                mItemAppLock.setChecked(checked);
+                if (checked) {
+                    startService(new Intent(SettingActivity.this, WatchDogService.class));
+                } else {
+                    stopService(new Intent(SettingActivity.this, WatchDogService.class));
+                }
+            }
+        });
     }
 
     /**
