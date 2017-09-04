@@ -175,6 +175,8 @@
         <activity android:name=".activity.EnterPwdActivity"
             android:launchMode="singleInstance"
             android:excludeFromRecents="true"/>
+        <activity android:name=".activity.AnitVirusActivity"
+                  android:configChanges="orientation|screenSize|keyboardHidden"/>
     </application>
 
 </manifest>

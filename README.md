@@ -3102,3 +3102,620 @@ MyAppWidgetProvider代码：
 						}
 				
 					}
+
+
+- 手机杀毒
+	- 什么是病毒?
+
+			计算机病毒是一个程序，一段可执行码。就像生物病毒一样，具有自我繁殖、互相传染以及激活再生等生物病毒特征。计算机病毒有独特的复制能力，它们能够快速蔓延，又常常难以根除。它们能把自身附着在各种类型的文件上，当文件被复制或从一个用户传送到另一个用户时，它们就随同文件一起蔓延开来。
+
+	- 计算机第一个病毒
+
+			诞生于麻省理工大学
+			
+	- 蠕虫病毒
+		
+			熊猫烧香，蠕虫病毒的一种，感染电脑上的很多文件；exe文件被感染，html文件被感染。
+		 	主要目的：证明技术有多牛。写这种病毒的人越来越少了
+
+	- 木马
+
+			盗窃信息，盗号、窃取隐私、偷钱，玩了一个游戏，买了很多装备，监听你的键盘输入，下次进入的话，装备全部没了。
+			主要目目的：挣钱，产生利益；
+
+	- 灰鸽子
+
+			主要特征，控制别人电脑，为我所有。比如挖金矿游戏挣钱的，控制几十万台机器为你干活。
+			总会比银河处理器快的多。
+			特点是：不知情情况下安装下的。
+
+	- 所有的病毒，都是执行后才有危害，如果病毒下载了，没有安装运行，是没有危害的。	
+	- 杀毒原理介绍
+
+			定位出特殊的程序，把程序的文件给删除。
+	
+			王江民, 江民杀毒软件
+			Kv300
+			Kv300 干掉300个病毒
+			
+			开发kv300后很多人用盗版的。
+			江民炸弹
+
+	- 病毒怎么找到？-收集病毒的样本
+		
+			电信 网络运营商主节点 部署服务器集群（蜜罐）
+			一组没有防火墙 没有安全软件 没有补丁的服务器, 主动联网,下载一些软件运行。这样情况下，特别容易中病毒。
+			工作原理相当于：苍蝇纸
+
+	- 360互联网云安全计划
+
+			所有的用户都是你的蜜罐；
+			收集的数据量就大大提高了；
+
+			国内安全厂商，有些没有职业道德。
+			收集一些个人隐私，或者商业机密的文件也收集过去 3Q大战
+
+	- 传统杀毒软件的缺陷
+
+			目前卡巴斯基病毒库已经有了2千多万病毒
+
+			传统杀毒软件的缺陷： 病毒数据库越来越大；
+			只能查杀已知的病毒，不能查杀未知病毒；
+
+			360免杀
+			写了一个木马，在加一个壳，加壳后360就识别不了了
+
+	- 主动防御
+
+			检查软件
+			1.检查开机启动项
+			2.检查注册表；
+			3.检查进程列表
+
+			病毒特征：
+			1、开启启动
+			2、隐藏自身
+			3、监视键盘
+			4、联网发邮件
+
+			启发式扫描-扫描单个文件
+			拷贝文件到虚拟机-相当于精简版的系统, 运行后检测是否具备病毒特点
+
+	- 杀毒引擎
+
+			优化后的数据库查询算法,优先扫描当下最常见的病毒, 速度快
+
+	- Android上的杀毒软件
+
+			大多数停留在基于数据库方式杀毒
+
+			LBE主动防御方式杀毒。敏感权限扫描,敏感操作提示,和小米深度合作
+
+			金山手机卫士病毒库
+
+- 手机杀毒模块开发
+	- 病毒数据库结束
+	![](ScreenShots/virus_table.png)
+
+	- 扫描动画
+
+			RotateAnimation anim = new RotateAnimation(0, 360,
+				Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
+				0.5f);
+			anim.setDuration(1000);//间隔时间
+			anim.setRepeatCount(Animation.INFINITE);//无限循环
+			anim.setInterpolator(new LinearInterpolator());//匀速循环,不停顿
+			ivScanning.startAnimation(anim);
+
+	- 自定义进度条样式
+
+			1. 查看android系统对Progressbar样式的定义
+
+			开发环境\platforms\android-16\data\res\values\styles.xml,搜索Widget.Holo.ProgressBar.Horizontal->progress_horizontal_holo_light
+
+			2. 拷贝xml文件,修改成自己的图片
+
+			<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+			    <item
+			        android:id="@android:id/background"
+			        android:drawable="@drawable/security_progress_bg"/>
+			    <item
+			        android:id="@android:id/secondaryProgress"
+			        android:drawable="@drawable/security_progress">
+			    </item>
+			    <item
+			        android:id="@android:id/progress"
+			        android:drawable="@drawable/security_progress">
+			    </item>
+			</layer-list>
+
+			3. 将xml文件设置给Progressbar
+
+			<ProgressBar
+                android:id="@+id/progressBar1"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progress="50"
+                android:progressDrawable="@drawable/custom_progress" />
+			
+			4. 进度更新
+
+				// 更新进度条
+				new Thread() {
+					public void run() {
+						pbProgress.setMax(100);
+		
+						for (int i = 0; i <= 100; i++) {
+							pbProgress.setProgress(i);
+		
+							try {
+								Thread.sleep(30);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+					};
+				}.start();
+			
+
+- 获取系统安装包的MD5
+
+		- 方法一：获取sourceDir， 计算 md5
+		
+		PackageManager pm = getPackageManager();
+		// 获取所有已安装/未安装的包的安装包信息
+		// GET_UNINSTALLED_PACKAGES代表已删除，但还有安装目录的
+		List<PackageInfo> packages = pm
+					.getInstalledPackages(PackageManager.GET_UNINSTALLED_PACKAGES);
+
+		for (PackageInfo packageInfo : packages) {
+			//apk安装路径
+			String apkPath = packageInfo.applicationInfo.sourceDir;
+			//计算apk的md5
+			String md5 = MD5Utils.getFileMd5(apkPath);
+		}
+
+		-------------------------------------------------
+
+		/**
+		 * 获取某个文件的md5
+		 * @param path
+		 * @return
+		 */
+		public static String getFileMd5(String path) {
+			try {
+				MessageDigest digest = MessageDigest.getInstance("MD5");
+				FileInputStream in = new FileInputStream(path);
+	
+				int len = 0;
+				byte[] buffer = new byte[1024];
+	
+				while ((len = in.read(buffer)) != -1) {
+					digest.update(buffer, 0, len);
+				}
+	
+				byte[] result = digest.digest();
+	
+				StringBuffer sb = new StringBuffer();
+				for (byte b : result) {
+					int i = b & 0xff;// 将字节转为整数
+					String hexString = Integer.toHexString(i);// 将整数转为16进制
+	
+					if (hexString.length() == 1) {
+						hexString = "0" + hexString;// 如果长度等于1, 加0补位
+					}
+	
+					sb.append(hexString);
+				}
+	
+				System.out.println(sb.toString());// 打印得到的md5
+				return sb.toString();
+	
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	
+			return "";
+		}
+
+
+		- 方法二：获取 Signature，计算md5
+		
+		//获取手机上的所有包的签名文件信息，包括卸载残留的包
+        PackageManager packageManager = getPackageManager();
+        List<PackageInfo> packageInfoList = packageManager.getInstalledPackages(PackageManager.GET_SIGNATURES + PackageManager.MATCH_UNINSTALLED_PACKAGES);
+
+		for (PackageInfo packageInfo : packageInfoList) {
+	        Signature[] signatures = packageInfo.signatures;//获取签名文件的数组 (打印出来的所有长度都为1)
+	        //取第一个元素，然后进行md5,将此md5和数据库中的md5比对
+	        String s = signatures[0].toCharsString();
+	        String md5 = MD5Utils.encode(s); //32位字符串,16进制字符(0-f)
+		}
+
+		--------------------------------
+
+	    /**
+	     * 对密码进行MD5加密
+	     *
+	     * @param password
+	     * @return
+	     */
+	    public static String encode(String password) {
+	        try {
+	            MessageDigest instance = MessageDigest.getInstance("MD5"); // 获取MD5算法对象
+	            byte[] digest = instance.digest(password.getBytes()); // 对字符串加密，返回字节数组
+	
+	            StringBuilder sb = new StringBuilder();
+	            for (byte b : digest) {
+	                int i = b & 0xff; // 获取字节低八位有效值，因为b有可能是负值
+	                String hexString = Integer.toHexString(i);
+	
+	                if (hexString.length() < 2) {
+	                    hexString = "0" + hexString;
+	                }
+	
+	                sb.append(hexString);
+	            }
+	            return sb.toString();
+	        } catch (NoSuchAlgorithmException e) {
+	            e.printStackTrace();
+	        }
+	
+	        return "";
+	    }
+
+
+- 扫描病毒数据库
+
+		AntiVirusDao.java
+
+		/**
+		 * 病毒数据库的封装
+		 * 
+		 * @author Kevin
+		 * 
+		 */
+		public class AntiVirusDao {
+		
+			public static final String PATH = "data/data/com.itheima.mobilesafeteach/files/antivirus.db";
+		
+				/**
+				 * 根据签名的md5判断是否是病毒
+				 * 
+				 * @param md5
+				 * @return 返回病毒描述,如果不是病毒,返回null
+				 */
+				public static String isVirus(String md5) {
+					SQLiteDatabase db = SQLiteDatabase.openDatabase(PATH, null,
+							SQLiteDatabase.OPEN_READONLY);
+			
+					Cursor cursor = db.rawQuery("select desc from datable where md5=? ",
+							new String[] { md5 });
+			
+					String desc = null;
+					if (cursor.moveToFirst()) {
+						desc = cursor.getString(0);
+					}
+			
+					cursor.close();
+					db.close();
+					return desc;
+				}
+		}
+
+- 扫描安装包并更新进度条
+
+		int progress = 0;
+		Random random = new Random();
+		for (PackageInfo packageInfo : packages) {
+			String name = packageInfo.applicationInfo.loadLabel(pm)
+					.toString();
+
+			String apkPath = packageInfo.applicationInfo.sourceDir;
+			String md5 = MD5Utils.getFileMd5(apkPath);
+			String desc = AntiVirusDao.isVirus(md5);
+
+			if (desc != null) {
+				// 是病毒
+				System.out.println("是病毒....");
+			} else {
+				// 不是病毒
+				System.out.println("不是病毒....");
+			}
+
+			progress++;
+			pbProgress.setProgress(progress);
+
+			try {
+				Thread.sleep(50 + random.nextInt(50));//随机休眠一段时间
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+- 扫描过程中,更新扫描状态文字
+
+		- 扫描前,强制休眠2秒,展示"正在初始化8核杀毒引擎"
+		- 使用handler发送消息,更新TextView为:正在扫描:应用名称
+		- 扫描结束后, 发送消息,更新TextView为:扫描完毕
+		- 扫描结束后,关闭扫描的动画
+
+- 制作病毒
+
+		制作两个apk文件,并将这两个apk文件的md5加入到病毒数据库中,这样的话就可以测试扫出病毒的情况了
+
+		注意: 将原来的antivirus.db替换为新的文件后,一定要把app的数据清除后再运行,重新进行拷贝数据库的操作, 否则app仍找的是data/data目录下的旧版数据库!
+
+- 创建病毒集合		
+- 发现病毒后，提示用户删除病毒
+
+		if (mVirusList.isEmpty()) {
+			Toast.makeText(getApplicationContext(), "你的手机很安全了，继续加油哦!",
+					Toast.LENGTH_SHORT).show();
+		} else {
+			showAlertDialog();
+		}
+
+		----------------------------
+
+		/**
+		 * 发现病毒后,弹出警告弹窗
+		 */
+		protected void showAlertDialog() {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("警告!");
+			builder.setMessage("发现" + mVirusList.size() + "个病毒, 非常危险,赶紧清理!");
+			builder.setPositiveButton("立即清理",
+					new DialogInterface.OnClickListener() {
+	
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							for (ScanInfo info : mVirusList) {
+								// 卸载apk
+								Intent intent = new Intent(Intent.ACTION_DELETE);
+								intent.setData(Uri.parse("package:"
+										+ info.packageName));
+								startActivity(intent);
+							}
+						}
+					});
+	
+			builder.setNegativeButton("下次再说", null);
+			AlertDialog dialog = builder.create();
+			dialog.setCanceledOnTouchOutside(false);// 点击弹窗外面,弹窗不消失
+			dialog.show();
+		}
+
+- 处理横竖屏切换
+
+		fn+ctrl+f11 切换模拟器横竖屏后, Activity的onCreate方法会从新走一次, 可以通过清单文件配置,Activity强制显示竖屏
+
+		<activity
+            android:name=".activity.AntiVirusActivity"
+            android:screenOrientation="portrait" />
+
+		或者, 可以显示横屏, 通过此配置可以不重新创建Activity
+
+		<activity
+            android:name=".activity.AntiVirusActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+- 完整代码
+	
+		@ContentView(R.layout.activity_anit_virus)
+		public class AnitVirusActivity extends AppCompatActivity {
+		
+		    @ViewInject(R.id.iv_scanning)
+		    ImageView ivScanning;
+		    @ViewInject(R.id.tv_name)
+		    TextView tvName;
+		    @ViewInject(R.id.pb)
+		    ProgressBar pb;
+		    @ViewInject(R.id.ll_add_text)
+		    LinearLayout llAddText;
+		
+		    private static final int INIT = 1;
+		    private static final int SCANNING = 2;
+		    private static final int SCAN_FINISH = 3;
+		
+		    private int mProcess; //进度条的进度
+		    private List<ScanInfo> mVirusScanInfoList; //病毒数据库的集合
+		    private Random mRandom = new Random();
+		
+		
+		    @Override
+		    protected void onCreate(@Nullable Bundle savedInstanceState) {
+		        super.onCreate(savedInstanceState);
+		        x.view().inject(this);
+		
+		        initAnim();
+		
+		        //开始检测病毒
+		        checkVirus();
+		    }
+		
+		    /**
+		     * 初始化动画，并启动
+		     */
+		    private void initAnim() {
+		
+		        RotateAnimation rotateAnimation = new RotateAnimation(0, 360,
+		                Animation.RELATIVE_TO_SELF, 0.5f,
+		                Animation.RELATIVE_TO_SELF, 0.5f);
+		
+		        rotateAnimation.setDuration(1000);//间隔时间
+		        //rotateAnimation.setFillAfter(true);//动画结束时，停留在最后一帧
+		        rotateAnimation.setRepeatCount(Animation.INFINITE);//无限次循环
+		        rotateAnimation.setInterpolator(new LinearInterpolator());//匀速循环,不停顿
+		        ivScanning.startAnimation(rotateAnimation);
+		    }
+		
+		    /**
+		     * 检测病毒
+		     * 分析：获取手机上所有应用的签名文件的md5码，然后判断病毒数据库中有无该md5码，若有，则判断为病毒程序
+		     */
+		    private void checkVirus() {
+		
+		        new Thread() {
+		            @Override
+		            public void run() {
+		
+		
+		                mHandler.sendEmptyMessage(INIT);
+		                try {
+		                    //强制休眠2秒 显示初始化
+		                    Thread.sleep(2000);
+		                } catch (InterruptedException e) {
+		                    e.printStackTrace();
+		                }
+		
+		                //当前界面显示的扫描信息的集合
+		                List<ScanInfo> scanInfoList = new ArrayList<>();
+		                //病毒信息的集合，是scanInfoList的子集.便于卸载病毒程序时使用
+		                mVirusScanInfoList = new ArrayList<>();
+		
+		
+		                //获取数据库中所有的病毒的md5码
+		                List<String> virusList = VirusDao.getAllVirus();
+		
+		
+		                //获取手机上的所有包的签名文件信息，包括卸载残留的包
+		                PackageManager packageManager = getPackageManager();
+		                List<PackageInfo> packageInfoList = packageManager.getInstalledPackages(PackageManager.GET_SIGNATURES + PackageManager.MATCH_UNINSTALLED_PACKAGES);
+		
+		                pb.setMax(packageInfoList.size());
+		
+		                for (PackageInfo packageInfo : packageInfoList) {
+		                    Signature[] signatures = packageInfo.signatures;//获取签名文件的数组 (打印出来的所有长度都为1)
+		                    //取第一个元素，然后进行md5,将此md5和数据库中的md5比对
+		                    String s = signatures[0].toCharsString();
+		                    String md5 = MD5Utils.encode(s); //32位字符串,16进制字符(0-f)
+		
+		                    ScanInfo scanInfo = new ScanInfo();
+		                    scanInfo.appName = packageInfo.applicationInfo.loadLabel(packageManager).toString();
+		                    scanInfo.packageName = packageInfo.packageName;
+		                    // 注意:virusList 是病毒数据库中的的md5的集合。一般来说病毒数据库比较大，使用这种方式一下子获取所有数据就不太可取了。几百万、几千万条数据就可能会照成内存溢出
+		                    // 此时就应该在 VirusDao 中定义一个 isVirus(String md5) 方法
+		                    if (virusList.contains(md5)) {//
+		                        //if (VirusDao.isVirus(md5)) {
+		                        //标记为病毒
+		                        scanInfo.isVirus = true;
+		
+		                        mVirusScanInfoList.add(scanInfo);
+		                    } else {
+		                        scanInfo.isVirus = false;
+		                    }
+		                    scanInfoList.add(scanInfo);
+		
+		
+		                    //更新进度条(ProgressBar比较特殊，可以子线程中更新进度)
+		                    mProcess++;
+		                    pb.setProgress(mProcess);
+		
+		                    try {
+		                        // 模拟不同应用程序的扫描时间不一样。仅仅是为了视觉效果，提升用户体验而已
+		                        Thread.sleep(50 + mRandom.nextInt(100));
+		                    } catch (InterruptedException e) {
+		                        e.printStackTrace();
+		                    }
+		
+		                    //通知主线程更新UI(1:顶部扫描应用的名称2:扫描过程中往线性布局中添加view)
+		                    Message message = Message.obtain();
+		                    message.what = SCANNING;
+		                    message.obj = scanInfo;
+		                    mHandler.sendMessage(message);
+		                }
+		
+		                Message message = Message.obtain();
+		                message.what = SCAN_FINISH;
+		                mHandler.sendMessage(message);
+		            }
+		        }.start();
+		    }
+		
+		    private Handler mHandler = new Handler() {
+		        @Override
+		        public void handleMessage(Message msg) {
+		            switch (msg.what) {
+		                case INIT:
+		                    tvName.setText("正在初始化8核杀毒引擎");
+		                    break;
+		                case SCANNING:
+		                    ScanInfo info = ((ScanInfo) msg.obj);
+		
+		                    tvName.setText("正在扫描:" + info.appName);
+		
+		                    TextView textView = new TextView(getApplicationContext());
+		                    if (info.isVirus) {
+		                        textView.setText("发现病毒：" + info.appName);
+		                        textView.setTextColor(Color.RED);
+		                    } else {
+		                        textView.setText("扫描安全：" + info.appName);
+		                        textView.setTextColor(Color.BLACK);
+		                    }
+		
+		                    //从顶部插入
+		                    llAddText.addView(textView, 0);
+		                    break;
+		                case SCAN_FINISH:
+		                    tvName.setText("扫描完成");
+		
+		                    //清除动画
+		                    ivScanning.clearAnimation();
+		
+		                    if (mVirusScanInfoList.isEmpty()) {
+		                        Toast.makeText(getApplicationContext(), "你的手机很安全了，继续加油哦!",
+		                                Toast.LENGTH_SHORT).show();
+		                    } else {
+		                        showAlertDialog();
+		                    }
+		
+		                    break;
+		            }
+		        }
+		    };
+		
+		    private void showAlertDialog() {
+		        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		        builder.setTitle("警告!");
+		        builder.setMessage("发现" + mVirusScanInfoList.size() + "个病毒, 非常危险,赶紧清理!");
+		        builder.setPositiveButton("立即清理",
+		                new DialogInterface.OnClickListener() {
+		
+		                    @Override
+		                    public void onClick(DialogInterface dialog, int which) {
+		                        unInstallVirus();
+		                    }
+		                });
+		
+		        builder.setNegativeButton("下次再说", null);
+		        AlertDialog dialog = builder.create();
+		        dialog.setCanceledOnTouchOutside(false);// 点击弹窗外面,弹窗不消失
+		        dialog.show();
+		    }
+		
+		    /**
+		     * 卸载病毒程序
+		     */
+		    private void unInstallVirus() {
+		        for (ScanInfo scanInfo : mVirusScanInfoList) {
+		            String packageName = scanInfo.packageName;
+		            //源码
+		            Intent intent = new Intent("android.intent.action.DELETE");
+		            intent.addCategory("android.intent.category.DEFAULT");
+		            intent.setData(Uri.parse("package:" + packageName));
+		            startActivity(intent);
+		        }
+		    }
+		
+		
+		    /**
+		     * 显示当前扫描信息的javaBean
+		     */
+		    class ScanInfo {
+		        public boolean isVirus; // 是否是病毒
+		        public String packageName; // 包名
+		        public String appName; //程序名
+		    }
+		}

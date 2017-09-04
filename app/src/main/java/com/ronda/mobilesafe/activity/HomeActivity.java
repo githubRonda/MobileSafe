@@ -50,20 +50,21 @@ public class HomeActivity extends AppCompatActivity {
                     case 0: //手机防盗
                         showPasswordDialog();
                         break;
-                    case 1: //  通讯卫士
+                    case 1: // 通讯卫士
                         startActivity(new Intent(HomeActivity.this, CallSafeActivity2.class));
                         break;
                     case 2: // 软件管理
                         startActivity(new Intent(HomeActivity.this, AppManageActivity.class));
                         break;
-                    case 3:
+                    case 3: // 进程管理
                         startActivity(new Intent(HomeActivity.this, ProcessManagerActivity.class));
                         break;
-                    case 4:
+                    case 4: // 流量统计
                         break;
-                    case 5:
+                    case 5: // 手机杀毒
+                        startActivity(new Intent(getApplicationContext(), AnitVirusActivity.class));
                         break;
-                    case 6:
+                    case 6: // 缓存清理
                         break;
                     case 7: // 高级工具
                         startActivity(new Intent(HomeActivity.this, AToolsActivity.class));
@@ -117,8 +118,7 @@ public class HomeActivity extends AppCompatActivity {
 
                         startActivity(new Intent(HomeActivity.this, LostFindActivity.class));
                         dialog.dismiss();
-                    }
-                    else{
+                    } else {
                         Toast.makeText(HomeActivity.this, "密码错误！", Toast.LENGTH_SHORT).show();
                     }
                 } else {
@@ -232,7 +232,7 @@ public class HomeActivity extends AppCompatActivity {
 
         class ViewHolder {
             ImageView mImageView;
-            TextView  mTextView;
+            TextView mTextView;
 
             public ViewHolder(View view) {
                 mImageView = (ImageView) view.findViewById(R.id.iv_item);

@@ -95,6 +95,7 @@ public class SplashActivity extends AppCompatActivity {
     private void initDB() {
         copyDB("address.db"); // 拷贝归属地查询数据库
         copyDB("commonnum.db"); //拷贝常用号码数据库
+        copyDB("antivirus.db"); //拷贝病毒数据库
     }
 
     /**
