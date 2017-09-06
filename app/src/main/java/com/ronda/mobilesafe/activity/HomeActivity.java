@@ -51,26 +51,29 @@ public class HomeActivity extends AppCompatActivity {
                         showPasswordDialog();
                         break;
                     case 1: // 通讯卫士
-                        startActivity(new Intent(HomeActivity.this, CallSafeActivity2.class));
+                        startActivity(new Intent(getApplicationContext(), CallSafeActivity2.class));
                         break;
                     case 2: // 软件管理
-                        startActivity(new Intent(HomeActivity.this, AppManageActivity.class));
+                        startActivity(new Intent(getApplicationContext(), AppManageActivity.class));
                         break;
                     case 3: // 进程管理
-                        startActivity(new Intent(HomeActivity.this, ProcessManagerActivity.class));
+                        startActivity(new Intent(getApplicationContext(), ProcessManagerActivity.class));
                         break;
                     case 4: // 流量统计
+                        startActivity(new Intent(getApplicationContext(), TrafficActivity.class));
                         break;
                     case 5: // 手机杀毒
                         startActivity(new Intent(getApplicationContext(), AnitVirusActivity.class));
                         break;
                     case 6: // 缓存清理
+                        //startActivity(new Intent(getApplicationContext(), CacheClearActivity.class));
+                        startActivity(new Intent(getApplicationContext(), BaseCacheClearActivity.class));
                         break;
                     case 7: // 高级工具
-                        startActivity(new Intent(HomeActivity.this, AToolsActivity.class));
+                        startActivity(new Intent(getApplicationContext(), AToolsActivity.class));
                         break;
                     case 8: // 设置中心
-                        startActivity(new Intent(HomeActivity.this, SettingActivity.class));
+                        startActivity(new Intent(getApplicationContext(), SettingActivity.class));
                         break;
 
                 }

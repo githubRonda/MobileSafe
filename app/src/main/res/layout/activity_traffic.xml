@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <!--用View来间接控制 SlidingDrawer 拖拽范围-->
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="200dp">
+    </View>
+
+    <!-- android:handle="@+id/handler"把手 -->
+    <!-- android:content="@+id/content"抽屉 -->
+    <!-- vertical由下往上拖拽 -->
+    <!-- horizontal从右往左拖拽 -->
+    <!--注意：不支持从上往下，从左往右拖拽-->
+    <SlidingDrawer
+        android:handle="@+id/handler"
+        android:content="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+        <ImageView
+            android:id="@id/handler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_launcher"
+            />
+
+        <!--也可以是其他任何View-->
+        <TextView
+            android:id="@id/content"
+            android:background="#f00"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+    </SlidingDrawer>
+
+</LinearLayout>

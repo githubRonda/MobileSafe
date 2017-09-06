@@ -51,6 +51,13 @@
     <!--获取任务栈的权限 ActivityManager.getRunningTasks()-->
     <uses-permission android:name="android.permission.GET_TASKS"/>
 
+    <!--获取缓存权限 PackageManager.getPackageSizeInfo()-->
+    <uses-permission android:name="android.permission.GET_PACKAGE_SIZE"/>
+    <!--清理缓存的权限 PackageManager.freeStorageAndNotify() -->
+    <uses-permission android:name="android.permission.CLEAR_APP_CACHE"/>
+    <!--清理单个应用缓存的权限 PackageManager.deleteApplicationCacheFiles() 发现只适用于 system app-->
+    <uses-permission android:name="android.permission.DELETE_CACHE_FILES"/>
+
     <application
         android:name=".base.MyApplication"
         android:allowBackup="true"
@@ -177,6 +184,10 @@
             android:excludeFromRecents="true"/>
         <activity android:name=".activity.AnitVirusActivity"
                   android:configChanges="orientation|screenSize|keyboardHidden"/>
+        <activity android:name=".activity.CacheClearActivity"/>
+        <activity android:name=".activity.BaseCacheClearActivity"/>
+        <activity android:name=".activity.SDCacheClearActivity"/>
+        <activity android:name=".activity.TrafficActivity"/>
     </application>
 
 </manifest>

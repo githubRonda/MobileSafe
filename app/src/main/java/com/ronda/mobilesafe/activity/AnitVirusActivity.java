@@ -59,6 +59,7 @@ public class AnitVirusActivity extends AppCompatActivity {
 
     private int mProcess; //进度条的进度
     private List<ScanInfo> mVirusScanInfoList; //病毒数据库的集合
+    private Thread mCheckVirusThread;
     private Random mRandom = new Random();
 
 
@@ -71,6 +72,16 @@ public class AnitVirusActivity extends AppCompatActivity {
 
         //开始检测病毒
         checkVirus();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (mCheckVirusThread != null) {
+            mCheckVirusThread.interrupt();
+            mCheckVirusThread = null;
+        }
     }
 
     /**
@@ -95,10 +106,9 @@ public class AnitVirusActivity extends AppCompatActivity {
      */
     private void checkVirus() {
 
-        new Thread() {
+        mCheckVirusThread = new Thread() {
             @Override
             public void run() {
-
 
                 mHandler.sendEmptyMessage(INIT);
                 try {
@@ -125,6 +135,12 @@ public class AnitVirusActivity extends AppCompatActivity {
                 pb.setMax(packageInfoList.size());
 
                 for (PackageInfo packageInfo : packageInfoList) {
+
+                    //当按返回键退出时，此线程就不应该在继续执行了
+                    if (mCheckVirusThread == null || mCheckVirusThread.isInterrupted()) {
+                        return;
+                    }
+
                     Signature[] signatures = packageInfo.signatures;//获取签名文件的数组 (打印出来的所有长度都为1)
                     //取第一个元素，然后进行md5,将此md5和数据库中的md5比对
                     String s = signatures[0].toCharsString();
@@ -169,7 +185,8 @@ public class AnitVirusActivity extends AppCompatActivity {
                 message.what = SCAN_FINISH;
                 mHandler.sendMessage(message);
             }
-        }.start();
+        };
+        mCheckVirusThread.start();
     }
 
     private Handler mHandler = new Handler() {
