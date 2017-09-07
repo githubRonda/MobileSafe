@@ -15,6 +15,10 @@ android {
                 cppFlags ""
             }
         }
+        // 指定支持的so架构
+        ndk {
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'//, 'mips', 'mips64'
+        }
     }
     buildTypes {
         release {
@@ -43,7 +47,15 @@ android {
 //        cruncherEnabled = false
 //        useNewCruncher = false
 //    }
+
+//    repositories {
+//        flatDir {
+//            dirs 'libs'
+//        }
+//    }
 }
+
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -57,4 +69,8 @@ dependencies {
     compile "com.android.support:appcompat-v7:${rootProject.ext.support}"
     //xutls3框架
     compile 'org.xutils:xutils:3.5.0'
+    // 有米广告
+//    compile name: 'YoumiSdk_v7.4.0_2017-07-18', ext: 'aar'
+//    compile "com.android.support:support-v4:${rootProject.ext.support}"
+
 }

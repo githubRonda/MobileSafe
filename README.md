@@ -4202,3 +4202,94 @@ MyAppWidgetProvider代码：
 			svn检出, 需要翻墙
 
 			常用开源代码网站: github.com, code.google.com
+
+## 混淆
+
+	混淆与不混淆反编译出来的源码区别：
+		不混淆反编译出来的源码：几乎和我们所写的真正源码差不多，变量名都不会变化
+		混淆反编译出来的源码：大部分类名，变量名等都会变成 a,b,c...等样子。可读性很差
+
+
+	eclipse中的混淆：在 project.properties 中配置混淆文件
+		proguard.config=${sdk.dir}/tools/proguard/proguard-android.txt:proguard-project.txt
+		或者
+		proguard.config=proguard-android.txt:proguard-project.txt （此时需要把sdk中的proguard-android.txt拷贝到项目的根目录下）
+		另外：对于一些防止二次混淆的第三方的jar包的配置，放在proguard-project.txt中
+
+## 全局捕获异常
+
+	- 模拟异常, 比如int i = 1/0, 演示崩溃情况
+	- 代码实现
+	
+			/**
+			 * 自定义全局Application
+			 * 
+			 */
+			public class MobileSafeApplication extends Application {
+			
+				@Override
+				public void onCreate() {
+					super.onCreate();
+			
+					// 设置未捕获异常处理器
+					Thread.setDefaultUncaughtExceptionHandler(new MyUncaughtExceptionHandler());
+				}
+			
+				class MyUncaughtExceptionHandler implements UncaughtExceptionHandler {
+			
+					// 未捕获的异常都会走到此方法中
+					// Throwable是Exception和Error的父类
+					@Override
+					public void uncaughtException(Thread thread, Throwable ex) {
+						System.out.println("产生了一个未处理的异常, 但是被哥捕获了...");
+						// 将异常日志输入到本地文件中, 找机会上传到服务器,供技术人员分析
+						File file = new File(Environment.getExternalStorageDirectory(),
+								"error.log");
+						try {
+							PrintWriter writer = new PrintWriter(file);
+							ex.printStackTrace(writer);
+							writer.close();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+			
+						// 结束当前进程
+						android.os.Process.killProcess(android.os.Process.myPid());
+					}
+				}
+			}
+		
+## 代码混淆
+
+	- 代码未混淆的前提下,打包,并进行反编译, 发现源码都可以看到, 很不安全
+	- 找到项目根目录下的文件project.properties, 打开混淆注释
+	
+			proguard.config=${sdk.dir}/tools/proguard/proguard-android.txt:proguard-project.txt
+
+	- 分析文件proguard-android.txt
+	- 将proguard-android.txt文件拷贝到项目根目录,方便以后修改
+
+			proguard.config=proguard-android.txt:proguard-project.txt
+
+	- 重新打包并反编译,查看效果
+	- 结论: 混淆后,会将类名,方法名编译成a,b,c,d等混乱的字母, 提高代码阅读成本,增强安全性
+
+## 嵌入广告
+
+	- 分析app, 广告公司, 广告平台的关系
+
+			广告平台相当于中间商, 是app和广告公司的媒介, 抽成盈利
+
+	- 盈利方式
+
+		- 展示次数, 1000次 1毛5左右 , 1分钟展示3条广告
+		- 点击次数, 1次 1毛5左右
+		- 有效点击, 1次 1元左右
+
+	- 广告公司
+
+			有米, 百度, 360, 万普, panda
+
+	- 国外广告公司
+
+			StartApp

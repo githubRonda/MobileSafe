@@ -67,6 +67,9 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+        //有米广告
+        //AdManager.getInstance(this).init("d38dbdedcc16a840", "468651a978bd75c1", true);
+
 
         mRootView = (RelativeLayout) findViewById(R.id.rl_root);
         mTvVersion = (TextView) findViewById(R.id.tv_version);
